@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -13,6 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useTheme } from "./ThemeProvider";
 
 type Series = { key: string; name?: string };
 
@@ -46,18 +46,6 @@ const SERIES_COLORS_DARK = [
   "#d95926",
 ];
 
-function useIsDark(): boolean {
-  const [isDark, setIsDark] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const update = () => setIsDark(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
-  return isDark;
-}
-
 export function parseChartSpec(raw: string): ChartSpec | null {
   try {
     const spec = JSON.parse(raw);
@@ -77,7 +65,8 @@ export function parseChartSpec(raw: string): ChartSpec | null {
 }
 
 export default function ChartRenderer({ spec }: { spec: ChartSpec }) {
-  const isDark = useIsDark();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const colors = isDark ? SERIES_COLORS_DARK : SERIES_COLORS_LIGHT;
   const ink = isDark ? "#c3c2b7" : "#52514e";
   const grid = isDark ? "#2c2c2a" : "#e1e0d9";

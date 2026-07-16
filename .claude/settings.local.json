@@ -5,7 +5,16 @@
       "Bash(echo \"FRONTEND_PID=$!\")",
       "Bash(curl -s -o /dev/null -w \"frontend HTTP %{http_code}\\\\n\" http://localhost:3000)",
       "Bash(curl -s http://127.0.0.1:8000/api/health -w \"\\\\nbackend HTTP %{http_code}\\\\n\")",
-      "PowerShell(Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force })"
+      "PowerShell(Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force })",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(backend/.venv/Scripts/python.exe -c \"import fastapi, uvicorn, mcp, google.genai, sqlalchemy, pyodbc; print\\('backend venv OK'\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import fastapi, uvicorn, mcp, google.genai, sqlalchemy, pyodbc; print\\('root venv OK'\\)\")",
+      "Bash(\"/d/WebDev/AI_Agent/backend/.venv/Scripts/python.exe\" -m uvicorn backend.app.main:app --port 8000)",
+      "Bash(echo \"started pid $!\")",
+      "Bash(curl -s http://localhost:8000/api/health)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000)"
     ]
   }
 }

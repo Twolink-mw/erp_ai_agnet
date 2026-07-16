@@ -9,14 +9,61 @@
      · proxyTimeout
 
  ✓ Starting...
- ✓ Ready in 3s
-(node:16608) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-Failed to proxy http://localhost:8000/api/chat [Error: socket hang up] { code: 'ECONNRESET' }
-[Error: socket hang up] { code: 'ECONNRESET' }
- ○ Compiling /_error ...
- ✓ Compiled /_error in 2s (281 modules)
+ ✓ Ready in 7.3s
  ○ Compiling / ...
- ✓ Compiled / in 6.9s (2315 modules)
- GET / 200 in 8557ms
-[?25h
+ ✓ Compiled / in 10.7s (2068 modules)
+ GET / 200 in 13086ms
+ GET / 200 in 136ms
+ GET / 200 in 79ms
+ ✓ Compiled in 1791ms (2068 modules)
+ ✓ Compiled in 554ms (1046 modules)
+ GET / 200 in 117ms
+ ✓ Compiled in 309ms (1046 modules)
+ GET / 200 in 85ms
+ ✓ Compiled in 1195ms (2068 modules)
+ ✓ Compiled in 899ms (2068 modules)
+ ✓ Compiled in 560ms (2068 modules)
+ ✓ Compiled in 909ms (2068 modules)
+ ✓ Compiled in 764ms (2068 modules)
+ GET / 200 in 577ms
+ GET / 200 in 52ms
+(node:36244) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ Compiled in 940ms (1046 modules)
+ GET / 200 in 435ms
+ ✓ Compiled in 357ms (1046 modules)
+ GET / 200 in 143ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 1446ms (2068 modules)
+ GET / 200 in 1646ms
+ ✓ Compiled in 596ms (2068 modules)
+ ✓ Compiled in 432ms (2068 modules)
+ ✓ Compiled in 549ms (2068 modules)
+ GET / 200 in 559ms
+ GET / 200 in 30ms
+ ✓ Compiled in 767ms (2071 modules)
+ GET / 200 in 156ms
+ ✓ Compiled in 401ms (1048 modules)
+ GET / 200 in 97ms
+ ✓ Compiled in 343ms (2071 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET / 200 in 875ms
+ ✓ Compiled in 405ms (2071 modules)
+ ✓ Compiled in 1106ms (2071 modules)
+ ✓ Compiled in 344ms (2071 modules)
+ ✓ Compiled in 406ms (2071 modules)
+ ✓ Compiled in 363ms (2071 modules)
+ GET / 200 in 400ms
+ GET / 200 in 72ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 4.5s (2075 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 4962ms
+ GET / 200 in 1374ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 193ms
+ ✓ Compiled in 571ms (1048 modules)
+ GET / 200 in 198ms
+ GET / 200 in 424ms
+ GET / 200 in 28ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1293ms (2075 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1530ms
