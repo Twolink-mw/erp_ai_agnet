@@ -54,6 +54,28 @@ npm run dev   # http://localhost:3000
 
 ODBC Driver 18 for SQL Server가 로컬에 설치되어 있어야 한다.
 
+### 로컬 서버 실행 순서
+
+1. **사전 조건**: `backend/.env`에 `GEMINI_API_KEY`, `MSSQL_*` 값이 채워져 있어야 한다
+   (`copy .env.example .env` 후 값 입력). ODBC Driver 18 for SQL Server 설치 확인.
+2. **백엔드 실행** (터미널 1):
+   ```bash
+   cd backend
+   .venv\Scripts\activate
+   uvicorn app.main:app --reload --port 8000
+   ```
+   `backend/mcp_server/server.py`(MCP stdio 서버)는 별도로 띄우지 않는다 — `run_chat()`이 요청마다
+   `McpSalesClient`를 통해 서브프로세스로 직접 기동/종료하므로, 백엔드 프로세스만 실행하면 된다.
+3. **프론트엔드 실행** (터미널 2):
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+4. 브라우저에서 `http://localhost:3000` 접속. 프론트엔드가 `/api/*` 요청을 `next.config.js`의 rewrite로
+   백엔드(`http://localhost:8000`, `BACKEND_URL` 환경변수로 override 가능)에 전달한다.
+5. 종료 시 두 터미널 모두 `Ctrl+C`로 중지. 백엔드 프로세스가 죽으면 그 시점에 열려 있던 MCP 서브프로세스도
+   함께 정리된다(요청 1턴 단위로 열고 닫는 구조이므로 장시간 떠 있는 별도 프로세스는 없다).
+
 ## 아키텍처 (구현 기준)
 
 요청 흐름: 브라우저 → Next.js rewrite (`frontend/next.config.js`, `/api/*` → `BACKEND_URL`/api/*,
