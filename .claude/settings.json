@@ -1,4 +1,6 @@
 {
+  "model":"sonet",
+  "autoMemoryEnabled": true,
   "permissions": {
     "allow": [
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000)",
@@ -6,7 +8,12 @@
       "Bash(powershell -Command 'Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq 53868 } | Select-Object ProcessId, CommandLine')",
       "Bash(cp \"C:\\\\Users\\\\minuzoa\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--WebDev-AI-Agent\\\\d7aade58-ee44-42de-a63f-b84d5fa7eb90\\\\scratchpad\\\\architecture-report.html\" /tmp/report_body.html)",
       "Read(//tmp/**)",
-      "Bash(/d/WebDev/AI_Agent/backend/.venv/Scripts/python.exe --version)"
+      "Bash(/d/WebDev/AI_Agent/backend/.venv/Scripts/python.exe --version)",
+      "Read(//c/Users/minuzoa/.claude/plugins/cache/harness-marketplace/harness/1.2.0/skills/harness/references/**)",
+      "Edit(/.claude/skills/chat-ui-dev/**)"
     ]
+  },
+  "env":{
+    "TZ":"Asia/Seoul"
   }
 }
