@@ -1,0 +1,8 @@
+INFO:     127.0.0.1:48971 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64868 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17220 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55668 - "GET /api/report/email/presets HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42527 - "POST /api/report/email HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61684 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3531 - "POST /api/report/pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33535 - "GET /api/health HTTP/1.1" 200 OK

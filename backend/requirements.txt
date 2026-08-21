@@ -7,3 +7,4 @@ pyodbc==5.2.0
 python-dotenv==1.0.1
 pydantic==2.13.4
 pydantic-settings==2.14.2
+reportlab==4.4.4

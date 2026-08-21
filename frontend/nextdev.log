@@ -1,0 +1,26 @@
+
+> erp-sales-chat-frontend@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.1.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.33:3000
+   - Experiments (use with caution):
+     · proxyTimeout
+
+ ✓ Starting...
+ ✓ Ready in 2.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 3.8s (2071 modules)
+ GET / 200 in 4578ms
+ GET / 200 in 43ms
+(node:21448) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Failed to proxy http://localhost:8000/api/chat [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1102ms (2320 modules)
+ GET / 200 in 880ms
+ GET / 200 in 13ms
+ GET / 200 in 783ms
+[?25h

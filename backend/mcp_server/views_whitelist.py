@@ -6,6 +6,13 @@ schema.view 형태의 뷰만 조회 대상이 된다.
 
 import re
 
+# MSSQL은 스키마로 수식되지 않은 이름(예: FROM JINJU_SALES)을 실행 계정의
+# 기본 스키마로 해석한다. sql_guard가 비수식 참조를 화이트리스트와 대조할 때
+# 이 값을 보충 스키마로 사용하며, 통과한 참조는 실행 전에 반드시
+# "DEFAULT_SCHEMA.이름" 형태로 수식해 기본 스키마 해석의 모호성을 제거한다.
+# (MSSQL_READONLY_USER의 기본 스키마가 dbo가 아니어도 안전하도록.)
+DEFAULT_SCHEMA = "dbo"
+
 # 실제 ERP 스키마에 맞춰 채워 넣는다. (예시)
 SALES_VIEW_WHITELIST: set[str] = {
     "dbo.JINJU_SALES",

@@ -46,6 +46,13 @@ const SERIES_COLORS_DARK = [
   "#d95926",
 ];
 
+const numberFormatter = new Intl.NumberFormat("ko-KR");
+
+function formatNumber(value: number | string): string {
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? numberFormatter.format(n) : String(value);
+}
+
 export function parseChartSpec(raw: string): ChartSpec | null {
   try {
     const spec = JSON.parse(raw);
@@ -99,7 +106,13 @@ export default function ChartRenderer({ spec }: { spec: ChartSpec }) {
             tick={{ fill: ink, fontSize: 11 }}
             tickLine={false}
           />
-          <YAxis stroke={axis} tick={{ fill: ink, fontSize: 11 }} tickLine={false} width={56} />
+          <YAxis
+            stroke={axis}
+            tick={{ fill: ink, fontSize: 11 }}
+            tickLine={false}
+            width={56}
+            tickFormatter={formatNumber}
+          />
           <Tooltip
             contentStyle={{
               background: surface,
@@ -108,6 +121,7 @@ export default function ChartRenderer({ spec }: { spec: ChartSpec }) {
               fontSize: 12,
               color: isDark ? "#fff" : "#0b0b0b",
             }}
+            formatter={(value: number | string) => formatNumber(value)}
           />
           {spec.series.length > 1 && (
             <Legend wrapperStyle={{ fontSize: 12, color: ink }} />

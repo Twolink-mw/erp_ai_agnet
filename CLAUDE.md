@@ -61,8 +61,13 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 copy .env.example .env
-uvicorn app.main:app --reload --port 8000
+cd ..
+uvicorn backend.app.main:app --reload --port 8000
 ```
+> **주의:** 마지막 `uvicorn` 실행은 반드시 워크스페이스 루트([d:\WebDev\AI_Agent](d:\WebDev\AI_Agent))에서 해야 한다.
+> [backend/app/mcp_client.py](backend/app/mcp_client.py)가 MCP 서버를 `python -m backend.mcp_server.server`로 서브프로세스 실행하는데,
+> `backend/` 안에서 uvicorn을 띄우면(cwd가 `backend/`가 되면) `backend` 패키지를 찾지 못해
+> `ModuleNotFoundError: No module named 'backend'`로 MCP 연결이 실패하고 챗봇에 "도구 연결 실패" 메시지가 뜬다.
 
 ### 3) 프론트엔드 실행
 ```bash

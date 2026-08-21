@@ -9,7 +9,7 @@ class ResizeObserverPolyfill {
   disconnect() {}
 }
 
-// @ts-expect-error - jsdom에는 ResizeObserver가 없음
+// jsdom에는 ResizeObserver가 없으므로 전역에 폴리필을 주입한다.
 global.ResizeObserver = ResizeObserverPolyfill;
 
 Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
