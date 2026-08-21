@@ -39,6 +39,14 @@ npm test
 - WITH cte AS (SELECT * FROM 비화이트리스트뷰) SELECT * FROM cte
 ```
 
+주의: CTE(`WITH ... AS (...) SELECT ...`) 자체는 이제 정식 지원되는 문법이다(월별 순위
+변동처럼 다단계 집계가 필요한 질문에서 흔히 쓰임). 위 마지막 예시가 차단돼야 하는 이유는
+"WITH로 시작해서"가 아니라 **CTE 본문 안에 화이트리스트 밖 테이블(`비화이트리스트뷰`)이
+숨어있어서**다 — 같은 구조라도 화이트리스트 뷰만 참조하면 정상 통과해야 한다. 회귀 확인 시
+`WITH cte AS (SELECT * FROM 화이트리스트뷰) SELECT * FROM cte`(정상 통과)와
+`WITH cte AS (SELECT * FROM 비화이트리스트뷰) SELECT * FROM cte`(차단)를 함께 테스트해서
+둘의 결과가 반대인지 확인한다.
+
 ### 2. MCP 도구 ↔ Gemini FunctionDeclaration
 
 `backend/mcp_server/server.py`가 노출하는 도구 5개의 이름·파라미터와 `gemini_agent.py`가 변환한

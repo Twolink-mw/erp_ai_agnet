@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import ChartRenderer, { parseChartSpec } from "./ChartRenderer";
@@ -20,7 +20,33 @@ const COLORS = {
   text: "var(--text)",
   muted: "var(--muted)",
   accent: "var(--accent)",
+  // 순위 변동(DIFF_RANK) 표시색 — 라이트/다크 값은 app/layout.tsx의 토큰에서 결정된다.
+  rankUp: "var(--rank-up)",
+  rankDown: "var(--rank-down)",
 };
+
+/**
+ * 표 셀이 순위 변동 값(백엔드 DIFF_RANK: `▲3`, `▼2`, `-`)인지 판별해 색을 돌려준다.
+ * 상승은 빨강, 하락은 파랑, 그 외(`-`, 일반 숫자/텍스트)는 null → 기본색 유지.
+ */
+function rankDeltaColor(text: string): string | null {
+  const v = text.trim();
+  if (/^▲\s*\d+$/.test(v)) return COLORS.rankUp;
+  if (/^▼\s*\d+$/.test(v)) return COLORS.rankDown;
+  return null;
+}
+
+/**
+ * react-markdown은 셀 children으로 문자열 대신 노드 배열을 줄 수 있다.
+ * 단순 텍스트 한 덩어리일 때만 문자열을 돌려주고, 그 외에는 null(원본 렌더링으로 폴백).
+ */
+function plainTextOf(children: ReactNode): string | null {
+  if (typeof children === "string") return children;
+  if (Array.isArray(children) && children.length === 1 && typeof children[0] === "string") {
+    return children[0];
+  }
+  return null;
+}
 
 const THEME_OPTIONS: { value: ThemeSetting; label: string }[] = [
   { value: "system", label: "시스템" },
@@ -299,7 +325,30 @@ function EmailSendButton({ content, question }: { content: string; question?: st
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
       {sent ? (
-        <span style={{ color: COLORS.text, fontSize: 13 }}>메일 발송됨 ({sentTo.join(", ")})</span>
+        <>
+          <span style={{ color: COLORS.text, fontSize: 13 }}>메일 발송됨 ({sentTo.join(", ")})</span>
+          <button
+            type="button"
+            onClick={() => {
+              // 받는 사람 선택/입력은 그대로 남겨둔다 — 같은 곳에 다시 보내거나
+              // 조금만 바꿔서 재발송하는 경우가 많아, 매번 처음부터 다시 고르게
+              // 하지 않는다.
+              setSent(false);
+              setError(null);
+            }}
+            style={{
+              border: `1px solid ${COLORS.border}`,
+              borderRadius: 16,
+              padding: "5px 12px",
+              fontSize: 13,
+              background: COLORS.bubble,
+              color: COLORS.text,
+              cursor: "pointer",
+            }}
+          >
+            다시 보내기
+          </button>
+        </>
       ) : (
         <>
           {presets.length > 0 && (
@@ -604,6 +653,19 @@ export default function Chat() {
                           <code className={className} {...rest}>
                             {children}
                           </code>
+                        );
+                      },
+                      td(props) {
+                        const { children, style, node: _node, ...rest } = props;
+                        const text = plainTextOf(children);
+                        const color = text === null ? null : rankDeltaColor(text);
+                        return (
+                          <td
+                            {...rest}
+                            style={color ? { ...style, color, fontWeight: 600 } : style}
+                          >
+                            {children}
+                          </td>
                         );
                       },
                     }}

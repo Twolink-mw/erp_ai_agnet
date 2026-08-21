@@ -172,6 +172,72 @@ describe("Chat", () => {
   });
 });
 
+describe("Chat - 순위 변동 셀 색상", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  /** DIFF_RANK 컬럼을 가진 마크다운 표를 assistant 응답으로 흘려보낸다. */
+  const RANK_TABLE = [
+    "| 순위 | 품목 | 순위변동 |",
+    "| --- | --- | --- |",
+    "| 1 | 사과 | ▲3 |",
+    "| 2 | 바나나 | ▼2 |",
+    "| 3 | 포도 | - |",
+    "| 4 | 딸기 | 신규 |",
+  ].join("\n");
+
+  async function renderRankTable() {
+    mockFetchOnce(RANK_TABLE);
+    render(<Chat />);
+    await sendMessage("순위 변동 보여줘");
+    await screen.findByText("▲3");
+  }
+
+  it("▲숫자 셀은 상승 색(빨강 토큰)으로 렌더링한다", async () => {
+    await renderRankTable();
+
+    const cell = screen.getByText("▲3");
+    expect(cell.tagName.toLowerCase()).toBe("td");
+    expect(cell).toHaveStyle({ color: "var(--rank-up)" });
+  });
+
+  it("▼숫자 셀은 하락 색(파랑 토큰)으로 렌더링한다", async () => {
+    await renderRankTable();
+
+    const cell = screen.getByText("▼2");
+    expect(cell.tagName.toLowerCase()).toBe("td");
+    expect(cell).toHaveStyle({ color: "var(--rank-down)" });
+  });
+
+  it("변동 없음(-)이나 일반 텍스트/숫자 셀에는 색을 넣지 않는다", async () => {
+    await renderRankTable();
+
+    for (const value of ["-", "신규", "사과", "1"]) {
+      const cell = screen.getByText(value);
+      expect(cell.style.color).toBe("");
+      expect(cell.style.fontWeight).toBe("");
+    }
+  });
+
+  it("셀 children이 단순 문자열이 아니면(마크다운 강조 등) 원본 그대로 렌더링한다", async () => {
+    mockFetchOnce(
+      ["| 순위변동 |", "| --- |", "| **▲3** |"].join("\n")
+    );
+    render(<Chat />);
+    await sendMessage("순위 변동 보여줘");
+
+    const strong = await screen.findByText("▲3");
+    expect(strong.tagName.toLowerCase()).toBe("strong");
+    const cell = strong.closest("td")!;
+    expect(cell.style.color).toBe("");
+  });
+});
+
 describe("Chat - PDF 다운로드 버튼", () => {
   let createObjectURL: ReturnType<typeof vi.fn>;
   let revokeObjectURL: ReturnType<typeof vi.fn>;
@@ -394,6 +460,33 @@ describe("Chat - 이메일 발송 버튼", () => {
     fireEvent.change(input, { target: { value: "user@company.com" } });
     fireEvent.click(screen.getByRole("button", { name: /발송/ }));
 
+    expect(await screen.findByText(/메일 발송됨/)).toBeInTheDocument();
+  });
+
+  it("발송 성공 후 '다시 보내기'로 폼을 다시 열어 재발송할 수 있다", async () => {
+    const fetchMock = mockChatThenEmail("표 응답", true, okEmailResponse());
+    render(<Chat />);
+    await sendMessage("질문");
+
+    fireEvent.click(await screen.findByRole("button", { name: /이메일로 보내기/ }));
+    const input = await screen.findByPlaceholderText("받는 사람 이메일");
+    fireEvent.change(input, { target: { value: "user@company.com" } });
+    fireEvent.click(screen.getByRole("button", { name: /발송/ }));
+    expect(await screen.findByText(/메일 발송됨/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "다시 보내기" }));
+
+    // 폼이 다시 열리고, 직전에 입력했던 주소가 그대로 남아있어야 한다.
+    const reopenedInput = await screen.findByPlaceholderText("받는 사람 이메일");
+    expect(reopenedInput).toHaveValue("user@company.com");
+    expect(screen.queryByText(/메일 발송됨/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /발송/ }));
+
+    await waitFor(() => {
+      const emailCalls = fetchMock.mock.calls.filter((c) => String(c[0]) === "/api/report/email");
+      expect(emailCalls.length).toBe(2);
+    });
     expect(await screen.findByText(/메일 발송됨/)).toBeInTheDocument();
   });
 

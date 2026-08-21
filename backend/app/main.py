@@ -146,8 +146,11 @@ async def report_email(req: EmailReportRequest) -> dict:
 
     filename = safe_filename(req.filename or req.title)
     title = req.title or DEFAULT_TITLE
+    # 사용자가 챗봇에 입력한 원문 질문은 본문에 노출하지 않는다 — 리포트 제목만으로도
+    # 무엇에 대한 리포트인지 충분히 드러나고(제목은 챗봇이 답변 맨 앞에 만드는 요약
+    # 한 줄이다), 원문 질문은 본문을 불필요하게 길고 산만하게 만든다.
     body_lines = [
-        f"질문: {req.question}" if req.question else None,
+        title,
         f"생성 시각: {req.generated_at or datetime.now().strftime('%Y-%m-%d %H:%M')}",
         "",
         "첨부된 PDF를 확인하세요.",
@@ -155,7 +158,7 @@ async def report_email(req: EmailReportRequest) -> dict:
     payload = mailer.EmailReportPayload(
         to=recipients,
         subject=f"[ERP 매출 리포트] {title}",
-        body_text="\n".join(line for line in body_lines if line is not None),
+        body_text="\n".join(body_lines),
         pdf_bytes=pdf_bytes,
         pdf_filename=filename,
     )

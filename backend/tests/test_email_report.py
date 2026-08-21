@@ -101,6 +101,26 @@ def test_report_email_endpoint_success(client, smtp_configured, monkeypatch):
     assert len(calls) == 1
 
 
+def test_report_email_endpoint_body_omits_question_and_shows_title(client, smtp_configured, monkeypatch):
+    calls = []
+    monkeypatch.setattr(mailer, "send_email", lambda payload: calls.append(payload))
+
+    res = client.post(
+        "/api/report/email",
+        json={
+            "title": "8월 매출 상위 10개",
+            "question": "8월 매출 상위 10개 알려줘",
+            "content": SAMPLE_CONTENT,
+            "to": ["user@company.com"],
+        },
+    )
+    assert res.status_code == 200
+    body_text = calls[0].body_text
+    assert "8월 매출 상위 10개" in body_text  # 리포트 제목은 노출
+    assert "질문" not in body_text  # 사용자가 입력한 원문 질문 문구는 노출 안 함
+    assert "알려줘" not in body_text
+
+
 def test_report_email_endpoint_rejects_non_whitelisted_domain(client, smtp_configured):
     res = client.post(
         "/api/report/email",

@@ -30,6 +30,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             --text: #e8e6e1;
             --muted: #8c8a85;
             --accent: #c96442;
+            --rank-up: #e8705a;
+            --rank-down: #7ab0ff;
           }
           :root[data-theme="light"] {
             --bg: #faf9f5;
@@ -38,6 +40,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             --text: #1f1e1d;
             --muted: #726e69;
             --accent: #c96442;
+            --rank-up: #b4341c;
+            --rank-down: #1e5fb8;
           }
           :root[data-theme="dark"] {
             --bg: #262624;
@@ -46,6 +50,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             --text: #e8e6e1;
             --muted: #8c8a85;
             --accent: #c96442;
+            --rank-up: #e8705a;
+            --rank-down: #7ab0ff;
           }
         `}</style>
       </head>

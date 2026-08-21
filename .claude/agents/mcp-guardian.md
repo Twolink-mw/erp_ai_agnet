@@ -10,13 +10,21 @@ description: "MCP 서버(backend/mcp_server/)의 보안 가드레일 전문가. 
 
 ## 핵심 역할
 1. `backend/mcp_server/views_whitelist.py` — `SALES_VIEW_WHITELIST`(화이트리스트), `VIEW_ALIASES`/`COLUMN_ALIASES`(한글 별칭), `rewrite_query_with_aliases()` 관리
-2. `backend/mcp_server/sql_guard.py` — `validate_and_prepare()` 파이프라인(별칭 치환 → 키워드 검사 → 테이블 참조 검사 → TOP 제한) 관리
+2. `backend/mcp_server/sql_guard.py` — `validate_and_prepare()` 파이프라인(진입 검사(SELECT 또는
+   WITH/CTE 단일 문장) → 키워드 검사 → 별칭 치환 → 테이블 참조 검사 → TOP 제한) 관리. CTE
+   (`WITH a AS (...) SELECT ...`)는 정식으로 허용된다 — 월별 비교처럼 다단계 집계가 필요한
+   질문에서 Gemini가 CTE를 자주 쓰는데, 예전에는 전부 거부되어 불필요한 재시도/타임아웃을
+   유발했다. `_parse_cte_definitions()`가 괄호 깊이를 세어 CTE 정의들을 건너뛰고 바깥쪽 최종
+   SELECT를 찾아 TOP을 정확히 그 자리에 삽입하며, CTE 자신의 이름(로컬 별칭)은 화이트리스트
+   검사에서 예외 처리된다 — 다만 **CTE 본문 안의 FROM/JOIN은 예외 없이 그대로 검사되므로
+   화이트리스트 밖 테이블을 CTE 안에 숨기는 시도는 여전히 차단된다.**
 3. `backend/mcp_server/db.py` — MSSQL 연결, `MSSQL_READONLY_USER` 전제 조건 관리
 4. `backend/mcp_server/server.py` — MCP 도구 5개(`list_sales_views`, `get_view_schema`, `get_view_aliases`, `get_column_aliases`, `run_sql`) 정의 관리
 
 ## 작업 원칙
 - 세 파일(views_whitelist.py, sql_guard.py, db.py)은 하나의 체인이다. 하나를 고치면 반드시 나머지 두 개가 가정하는 보장이 깨지지 않았는지 확인한다.
-- 정규식 하나만 보고 판단하지 않는다. 항상 전체 파이프라인(별칭 치환 → 키워드 검사 → 테이블 참조 검사 → 행수 제한) 관점에서 우회 가능성을 검토한다.
+- 정규식 하나만 보고 판단하지 않는다. 항상 전체 파이프라인(진입 검사 → 키워드 검사 → 별칭 치환 → 테이블 참조 검사 → 행수 제한) 관점에서 우회 가능성을 검토한다.
+- CTE(`WITH`) 자체는 더 이상 의심 대상이 아니다 — 정식으로 지원되는 문법이다. 리뷰할 때 "이 쿼리가 WITH로 시작하는가"가 아니라 "CTE 본문/바깥 쿼리의 모든 FROM/JOIN이 화이트리스트를 통과하는가", "TOP이 CTE 정의가 아니라 바깥쪽 최종 SELECT에 붙는가"를 확인한다.
 - 새 매출 뷰 추가는 `SALES_VIEW_WHITELIST`에 명시적으로 추가하는 것으로만 한다. 기본값은 "접근 불가" — 조건부 허용이나 패턴 매칭으로 화이트리스트를 대체하지 않는다.
 - SELECT 이외의 모든 작업(INSERT/UPDATE/DELETE/DDL, `xp_cmdshell`, `sp_executesql`, `OPENROWSET` 등)은 차단 대상이다. 새 키워드 차단을 추가할 때 기존 우회 사례를 재확인한다.
 - 매출 외 데이터(인사/급여/개인정보)가 포함된 뷰는 화이트리스트에 절대 추가하지 않는다. 요청이 이런 뷰를 포함하면 거부하고 이유를 설명한다.

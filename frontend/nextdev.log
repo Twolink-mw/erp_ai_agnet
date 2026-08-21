@@ -9,18 +9,28 @@
      · proxyTimeout
 
  ✓ Starting...
- ✓ Ready in 2.4s
+ ✓ Ready in 2.6s
  ○ Compiling / ...
- ✓ Compiled / in 3.8s (2071 modules)
- GET / 200 in 4578ms
- GET / 200 in 43ms
-(node:21448) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+ ✓ Compiled / in 4.4s (2071 modules)
+ GET / 200 in 5331ms
+ GET / 200 in 52ms
+(node:21884) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
 (Use `node --trace-deprecation ...` to show where the warning was created)
-Failed to proxy http://localhost:8000/api/chat [Error: socket hang up] { code: 'ECONNRESET' }
-[Error: socket hang up] { code: 'ECONNRESET' }
- ○ Compiling /_error ...
- ✓ Compiled /_error in 1102ms (2320 modules)
- GET / 200 in 880ms
- GET / 200 in 13ms
- GET / 200 in 783ms
+ ✓ Compiled in 652ms (1048 modules)
+ GET / 200 in 144ms
+ ✓ Compiled in 348ms (1048 modules)
+ GET / 200 in 97ms
+ ✓ Compiled in 216ms (1048 modules)
+ GET / 200 in 59ms
+ ✓ Compiled in 870ms (2071 modules)
+ ✓ Compiled in 499ms (2071 modules)
+ ✓ Compiled in 408ms (2071 modules)
+ ✓ Compiled in 1405ms (2071 modules)
+ GET / 200 in 208ms
+ ✓ Compiled in 817ms (2071 modules)
+ GET / 200 in 93ms
+ GET / 200 in 375ms
+ ✓ Compiled in 824ms (2071 modules)
+ GET / 200 in 309ms
+ GET / 200 in 21ms
 [?25h

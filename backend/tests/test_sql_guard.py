@@ -326,6 +326,52 @@ class TestSelectInto:
             validate_and_prepare(f"SELECT * INTO SecretCopy FROM {VIEW}")
 
 
+class TestSystemPromptRankChangeTemplate:
+    """config.py SYSTEM_PROMPT에 박아넣은 "월별 순위 변동" 힌트 쿼리가 실제로
+    sql_guard를 통과하는지 고정하는 회귀 테스트. 프롬프트에 예시로 준 쿼리가
+    가드 변경으로 나중에 막히면(예: NOLOCK 힌트, 중첩 서브쿼리+LEFT JOIN 구조가
+    거부되도록 바뀌면) 힌트 자체가 무용지물이 되므로 그런 회귀를 여기서 잡는다.
+    """
+
+    RANK_CHANGE_TEMPLATE = (
+        "SELECT A.RANK, A.ITEM_NM, A.SALES_AMT,\n"
+        "       CASE WHEN A.RANK - B.P_RANK = 0 THEN N'-'\n"
+        "            WHEN A.RANK - B.P_RANK > 0 THEN N'up' + CONVERT(NVARCHAR(10), A.RANK - B.P_RANK)\n"
+        "            WHEN A.RANK - B.P_RANK < 0 THEN N'down' + CONVERT(NVARCHAR(10), ABS(A.RANK - B.P_RANK))\n"
+        "            ELSE N'' END AS DIFF_RANK\n"
+        "FROM (SELECT A.RANK, A.ITEM_NM, A.SALES_AMT FROM (\n"
+        "        SELECT A.ITEM_NM, SUM(A.SALES_AMT) AS SALES_AMT,\n"
+        "               RANK() OVER (ORDER BY SUM(A.SALES_AMT) DESC) AS RANK\n"
+        f"        FROM {VIEW} A WITH (NOLOCK)\n"
+        "        WHERE A.SALES_DT = '2026-08' GROUP BY A.ITEM_NM) A\n"
+        "      WHERE A.RANK <= 10) A\n"
+        "LEFT JOIN (SELECT A.RANK AS P_RANK, A.ITEM_NM, A.SALES_AMT FROM (\n"
+        "        SELECT A.ITEM_NM, SUM(A.SALES_AMT) AS SALES_AMT,\n"
+        "               RANK() OVER (ORDER BY SUM(A.SALES_AMT) DESC) AS RANK\n"
+        f"        FROM {VIEW} A WITH (NOLOCK)\n"
+        "        WHERE A.SALES_DT = '2026-07' GROUP BY A.ITEM_NM) A) B\n"
+        "  ON B.ITEM_NM = A.ITEM_NM\n"
+        "ORDER BY A.RANK"
+    )
+
+    def test_rank_change_template_passes_guard(self):
+        result = validate_and_prepare(self.RANK_CHANGE_TEMPLATE)
+        assert VIEW in result
+        assert "DIFF_RANK" in result
+
+    def test_rank_change_template_gets_top_row_cap(self):
+        # 결과가 이미 RANK <= 10으로 제한되지만, 가드의 기본 행수 상한도 여전히
+        # 안전망으로 적용돼야 한다(중복 삽입 없이 outer SELECT 딱 한 번).
+        result = validate_and_prepare(self.RANK_CHANGE_TEMPLATE)
+        assert result.upper().count("TOP") == 1
+        assert result.upper().startswith("SELECT TOP 1000")
+
+    def test_rank_change_template_with_non_whitelisted_view_still_blocked(self):
+        bad = self.RANK_CHANGE_TEMPLATE.replace(VIEW, "SecretTable")
+        with pytest.raises(SqlGuardError, match="허용된 매출 뷰 목록"):
+            validate_and_prepare(bad)
+
+
 class TestCteQueries:
     """WITH ... AS (...) SELECT ... (CTE) 지원에 대한 테스트.
 

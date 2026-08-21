@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 from backend.app import main
 from backend.app.pdf_report import (
     PdfReportRequest,
+    _cell_markup,
     _strip_trailing_ui_action_hint,
     build_pdf,
     has_reportable_content,
@@ -93,6 +94,33 @@ def test_has_reportable_content_true_for_table_and_chart():
 
 def test_has_reportable_content_false_for_plain_text():
     assert has_reportable_content("안녕하세요, 무엇을 도와드릴까요?") is False
+
+
+# --- 순위 변동(▲/▼) 셀 색상 ---------------------------------------------------
+
+
+def test_cell_markup_colors_rank_up_red():
+    out = _cell_markup("▲3")
+    assert '<font color="#b4341c">' in out
+    assert "▲3" in out
+
+
+def test_cell_markup_colors_rank_down_blue():
+    out = _cell_markup("▼12")
+    assert '<font color="#1e5fb8">' in out
+    assert "▼12" in out
+
+
+@pytest.mark.parametrize("value", ["-", "신규", "123", "▲", "▲3위", " ▲3 상승"])
+def test_cell_markup_leaves_non_matching_values_uncolored(value):
+    out = _cell_markup(value)
+    assert "<font color=" not in out
+
+
+def test_cell_markup_handles_surrounding_whitespace():
+    # 셀 값 앞뒤 공백은 정상적으로 화살표+숫자 판정에서 무시된다.
+    out = _cell_markup("  ▲7  ")
+    assert '<font color="#b4341c">' in out
 
 
 # --- PDF 전용 UI 안내 문구 제거 ----------------------------------------------
@@ -198,6 +226,18 @@ def test_build_pdf_accepts_explicit_tables_and_charts():
         ],
     )
     assert build_pdf(req).startswith(b"%PDF-")
+
+
+def test_build_pdf_renders_table_with_rank_change_cells_without_crashing():
+    content = (
+        "| 순위 | 제품 | 매출 | 변동 |\n"
+        "| --- | --- | --- | --- |\n"
+        "| 1 | A | 100 | ▲3 |\n"
+        "| 2 | B | 90 | ▼12 |\n"
+        "| 3 | C | 80 | - |\n"
+    )
+    data = build_pdf(PdfReportRequest(title="순위 변동", content=content))
+    assert data.startswith(b"%PDF-")
 
 
 def test_build_pdf_handles_ragged_table_rows():

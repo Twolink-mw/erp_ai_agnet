@@ -277,6 +277,29 @@ def markdown_inline_to_rl(text: str) -> str:
     return out
 
 
+# 프론트(Chat.tsx의 --rank-up/--rank-down 라이트 테마 값)와 동일한 색으로 맞춘다.
+# PDF는 다크모드 개념이 없는 "인쇄물"이므로 라이트 테마 값 하나만 쓴다.
+_RANK_UP_RE = re.compile(r"^▲\s*\d+$")
+_RANK_DOWN_RE = re.compile(r"^▼\s*\d+$")
+_RANK_UP_HEX = "#b4341c"
+_RANK_DOWN_HEX = "#1e5fb8"
+
+
+def _cell_markup(formatted: str) -> str:
+    """표 셀 텍스트를 reportlab 마크업으로 변환한다.
+
+    셀 전체가 정확히 "▲숫자"/"▼숫자"(순위 변동 SYSTEM_PROMPT 힌트 쿼리의 DIFF_RANK
+    컬럼 값)이면 색을 입힌다. 문장 중간에 우연히 같은 기호가 섞인 경우까지 색칠하지
+    않도록 셀 전체 일치만 본다(챗 UI의 rankDeltaColor()와 동일한 판정 기준).
+    """
+    stripped = formatted.strip()
+    if _RANK_UP_RE.match(stripped):
+        return f'<font color="{_RANK_UP_HEX}"><b>{markdown_inline_to_rl(stripped)}</b></font>'
+    if _RANK_DOWN_RE.match(stripped):
+        return f'<font color="{_RANK_DOWN_HEX}"><b>{markdown_inline_to_rl(stripped)}</b></font>'
+    return markdown_inline_to_rl(formatted)
+
+
 def _format_cell(value: Any) -> str:
     if value is None:
         return ""
@@ -436,7 +459,7 @@ def _styles(body_font: str, bold_font: str) -> dict[str, ParagraphStyle]:
 def _build_table(header: list[str], rows: list[list[Any]], st: dict, avail_width: float) -> Table:
     header_cells = [Paragraph(markdown_inline_to_rl(str(h)), st["cellhead"]) for h in header]
     body_cells = [
-        [Paragraph(markdown_inline_to_rl(_format_cell(c)), st["cell"]) for c in row]
+        [Paragraph(_cell_markup(_format_cell(c)), st["cell"]) for c in row]
         for row in rows
     ]
     ncols = max(len(header_cells), *(len(r) for r in body_cells)) if body_cells else len(header_cells)
