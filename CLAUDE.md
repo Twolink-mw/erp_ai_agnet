@@ -72,7 +72,7 @@ cd backend
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-copy .env.example .env
+if not exist .env copy .env.example .env
 cd ..
 uvicorn backend.app.main:app --reload --port 8000
 ```
@@ -80,6 +80,12 @@ uvicorn backend.app.main:app --reload --port 8000
 > [backend/app/mcp_client.py](backend/app/mcp_client.py)가 MCP 서버를 `python -m backend.mcp_server.server`로 서브프로세스 실행하는데,
 > `backend/` 안에서 uvicorn을 띄우면(cwd가 `backend/`가 되면) `backend` 패키지를 찾지 못해
 > `ModuleNotFoundError: No module named 'backend'`로 MCP 연결이 실패하고 챗봇에 "도구 연결 실패" 메시지가 뜬다.
+>
+> **주의:** `copy .env.example .env`는 `.env`가 이미 있으면 **확인 없이 덮어쓴다** — 이미 설정해둔
+> GEMINI_API_KEY/MSSQL_*/SMTP_* 값이 통째로 플레이스홀더로 날아간다. 위 명령은 `.env`가 없을 때만
+> 복사하도록 가드를 넣었으니, 이미 `.env`가 있는 상태라면 이 단계 전체를 건너뛸 것. 실수로 덮어썼다면
+> git에는 `.env`가 추적되지 않으므로(.gitignore) 복구가 안 되고, VS Code를 쓴다면
+> `%APPDATA%\Code\User\History\`의 Local History 스냅샷이 유일한 복구 경로일 수 있다.
 
 ### 3) 프론트엔드 실행
 ```bash
@@ -118,3 +124,32 @@ npm run dev
 |------|----------|------|------|
 | 2026-08-21 | 하네스 포인터 최초 등록 + 에이전트/스킬 정의 실제 코드와 동기화(`MAX_TOOL_ROUNDS` 6→10, `proxyTimeout` 120s→240s, `mailer.py`/`pdf_report.py`/PDF·이메일 엔드포인트/환경변수 반영, CTE 지원 반영, 그라운딩 체크/코드 덤프 방지 로직 반영) | agents/backend-dev.md, agents/frontend-dev.md, agents/mcp-guardian.md, skills/erp-integration-qa, skills/sql-guardrail-review, skills/gemini-agent-dev | 문서-코드 드리프트 발견(개발 누적 후 문서 미갱신) |
 
+## 직접 서비스 실행 방법
+1) 백엔드 실행 (터미널 1개, 반드시 워크스페이스 루트 d:\WebDev\AI_Agent에서)
+cd d:\WebDev\AI_Agent
+backend\.venv\Scripts\activate
+uvicorn backend.app.main:app --reload --port 8000
+
+주의: backend\ 폴더 안에서 uvicorn을 띄우면 안 됩니다 — MCP 서버 서브프로세스가 backend 패키지를 못 찾아 "도구 연결 실패"가 뜹니다.
+정상이면 Uvicorn running on http://127.0.0.1:8000 로그가 뜨고 에러 없이 유지됩니다.
+
+2) 프론트엔드 실행 (별도 터미널)
+
+cd d:\WebDev\AI_Agent\frontend
+npm run dev
+
+http://localhost:3000에서 서비스 시작 로그가 뜹니다.
+
+## 직접 서비스 종료 방법
+1) 프론트엔드 종료
+npm run dev가 실행 중인 터미널 창에서 Ctrl + C
+
+
+2) 백엔드 종료
+uvicorn이 실행 중인 터미널 창에서 Ctrl + C
+--reload 옵션 때문에 워커 프로세스가 자식으로 떠 있을 수 있는데, Ctrl+C 한 번이면 보통 같이 종료됩니다. 혹시 터미널을 닫았는데도 포트가 계속 잡혀있으면 아래로 확인/정리하시면 됩니다.
+
+# 8000번 포트를 쓰는 프로세스 확인
+netstat -ano | findstr :8000
+# 나온 PID로 강제 종료
+taskkill /PID <해당PID> /F

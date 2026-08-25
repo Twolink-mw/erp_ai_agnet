@@ -96,7 +96,7 @@ cd backend
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-copy .env.example .env
+if not exist .env copy .env.example .env
 cd ..
 uvicorn backend.app.main:app --reload --port 8000
 ```
@@ -107,6 +107,10 @@ uvicorn backend.app.main:app --reload --port 8000
 > `python -m backend.mcp_server.server`가 `backend` 패키지를 찾지 못해
 > `ModuleNotFoundError: No module named 'backend'`로 MCP 연결이 실패하고 챗봇에
 > "도구 연결 실패" 메시지가 뜹니다.
+>
+> **주의:** `copy .env.example .env`는 `.env`가 이미 있으면 확인 없이 덮어씁니다 — 이미 설정해둔
+> GEMINI_API_KEY/MSSQL_*/SMTP_* 값이 플레이스홀더로 사라집니다. 위 명령은 `.env`가 없을 때만
+> 복사하도록 가드를 넣었으니, 이미 `.env`가 있다면 이 단계는 건너뛰세요.
 
 ### 2) 프론트엔드 실행
 
